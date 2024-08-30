@@ -120,21 +120,19 @@ class MainActivity : ComponentActivity() {
         }
         UdpDiscoveryTask().execute()
         setContext(this)
-        pickMultipleMedia =
-            registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(5)) { uris ->
-                if (uris.isNotEmpty()) {
-                    selectedImages.clear()
-                    selectedImages.addAll(uris)
-                    Log.d("PhotoPicker", "Media selected: "+uris.size)
-                    processImages()
-                } else {
-                    Log.d("PhotoPicker", "No media selected")
-                }
+
+        galleryLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
+            val galleryUri = it
+            selectedImages.clear()
+            if(galleryUri.isNotEmpty()){
+                selectedImages.addAll(galleryUri)
+                processImages()
             }
+        }
     }
 
     companion object {
-        lateinit var pickMultipleMedia: ActivityResultLauncher<PickVisualMediaRequest>
+        lateinit var galleryLauncher: ActivityResultLauncher<String>
         private var weakContext: WeakReference<Context>? = null
 
         fun setContext(context: Context) {
@@ -192,8 +190,7 @@ fun encoder(uri: Uri): String? {
 }
 
 fun sendImages(){
-    val request = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-    MainActivity.pickMultipleMedia.launch(request)
+    MainActivity.galleryLauncher.launch("image/*")
 }
 
 fun processImages() {
